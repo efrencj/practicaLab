@@ -1,5 +1,7 @@
 package com.tecnocampus.examsimulation.domain;
 
+// hola en kingdom
+
 import com.tecnocampus.examsimulation.application.DTO.KingdomDTO;
 
 import java.time.LocalDateTime;
