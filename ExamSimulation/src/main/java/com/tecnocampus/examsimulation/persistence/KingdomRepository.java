@@ -21,7 +21,7 @@ public class KingdomRepository {
                 .param("food", kingdom.getFood())
                 .param("gold", kingdom.getGold())
                 .param("citizens", kingdom.getCitizens())
-                .param("created_at", kingdom.getCreatedAt())
+                .param("created_at", kingdom.getDateOfCreation())
                 .update();
     }
 

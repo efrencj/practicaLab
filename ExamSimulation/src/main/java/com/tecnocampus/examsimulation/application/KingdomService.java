@@ -3,9 +3,10 @@ package com.tecnocampus.examsimulation.application;
 import com.tecnocampus.examsimulation.domain.Kingdom;
 import com.tecnocampus.examsimulation.persistence.KingdomRepository;
 import com.tecnocampus.examsimulation.utilities.NotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 
 @Service
 public class KingdomService {
@@ -17,17 +18,20 @@ public class KingdomService {
     }
 
     // 1. Crear un nuevo reino
-    public void createKingdom(Kingdom kingdom) {
+    public Kingdom createKingdom(Kingdom kingdom) {
         if (kingdom.getGold() < 0 || kingdom.getGold() > 60 ||
                 kingdom.getCitizens() < 0 || kingdom.getCitizens() > 60 ||
                 kingdom.getFood() < 0 || kingdom.getFood() > 60) {
-            throw new IllegalArgumentException("Each field must be from 0 to 60");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+                    "Each field must be from 0 to 60");
         }
+
         kingdomRepository.saveKingdom(kingdom);
+        return kingdom;
     }
 
     // 2. Producción diaria
-    public void startDailyProduction(String kingdomId) throws NotFoundException {
+    public Kingdom startDailyProduction(String kingdomId) throws NotFoundException {
         Kingdom kingdom = kingdomRepository.findKingdomById(kingdomId);
 
         int food = kingdom.getFood();
@@ -47,17 +51,19 @@ public class KingdomService {
 
         if (citizens == 0) {
             kingdomRepository.deleteKingdom(kingdomId);
+            return null;
         } else {
             kingdomRepository.updateKingdom(kingdom);
+            return kingdom;
         }
     }
 
     // 3. Inversión en comida o ciudadanos
-    public void invest(String kingdomId, String type, int goldToSpend) throws NotFoundException {
+    public Kingdom invest(String kingdomId, String type, int goldToSpend) throws NotFoundException {
         Kingdom kingdom = kingdomRepository.findKingdomById(kingdomId);
 
         if (kingdom.getGold() < goldToSpend) {
-            throw new IllegalArgumentException("Not enough gold");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not enough gold");
         }
 
         kingdom.setGold(kingdom.getGold() - goldToSpend);
@@ -65,10 +71,11 @@ public class KingdomService {
         switch (type) {
             case "food" -> kingdom.setFood(kingdom.getFood() + goldToSpend * 2);
             case "citizens" -> kingdom.setCitizens(kingdom.getCitizens() + goldToSpend);
-            default -> throw new IllegalArgumentException("Invalid investment type");
+            default -> throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Invalid investment type");
         }
 
         kingdomRepository.updateKingdom(kingdom);
+        return kingdom;
     }
 
     // 4. Estado del reino
@@ -82,9 +89,9 @@ public class KingdomService {
     }
 
     // 6. Ataque
-    public void attack(String attackerId, String defenderId) throws NotFoundException {
+    public Kingdom attack(String attackerId, String defenderId) throws NotFoundException {
         if (attackerId.equals(defenderId))
-            throw new IllegalArgumentException("You cannot attack yourself");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "You cannot attack yourself");
 
         Kingdom attacker = kingdomRepository.findKingdomById(attackerId);
         Kingdom defender = kingdomRepository.findKingdomById(defenderId);
@@ -93,6 +100,13 @@ public class KingdomService {
             winAttack(attacker, defender);
         } else {
             winAttack(defender, attacker);
+        }
+
+        try {
+            return kingdomRepository.findKingdomById(attackerId);
+        } catch (NotFoundException e) {
+            // attacker could have been deleted
+            throw e;
         }
     }
 

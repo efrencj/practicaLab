@@ -19,26 +19,29 @@ public class KingdomRestController {
 
     // 1. Create Kingdom
     @PostMapping
-    public ResponseEntity<Void> createKingdom(@RequestBody Kingdom kingdom) {
-        kingdomService.createKingdom(kingdom);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<Kingdom> createKingdom(@RequestBody Kingdom kingdom) {
+        Kingdom created = kingdomService.createKingdom(kingdom);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     // 2. Start Daily Production
     @PostMapping("/{id}")
-    public ResponseEntity<Void> startDailyProduction(@PathVariable String id) throws NotFoundException {
-        kingdomService.startDailyProduction(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Kingdom> startDailyProduction(@PathVariable String id) throws NotFoundException {
+        Kingdom updated = kingdomService.startDailyProduction(id);
+        if (updated == null) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+        }
+        return ResponseEntity.ok(updated);
     }
 
     // 3. Invest in Food or Citizens
     @PostMapping("/{id}/invest")
-    public ResponseEntity<Void> invest(
+    public ResponseEntity<Kingdom> invest(
             @PathVariable String id,
             @RequestParam String type,
             @RequestBody GoldRequest request) throws NotFoundException {
-        kingdomService.invest(id, type, request.gold());
-        return ResponseEntity.ok().build();
+        Kingdom updated = kingdomService.invest(id, type, request.gold());
+        return ResponseEntity.ok(updated);
     }
 
     // 4. Get Kingdom Status
@@ -55,10 +58,10 @@ public class KingdomRestController {
 
     // 6. Attack another Kingdom
     @PostMapping("/{id}/attack/{target_id}")
-    public ResponseEntity<Void> attack(@PathVariable("id") String attackerId,
+    public ResponseEntity<Kingdom> attack(@PathVariable("id") String attackerId,
                                        @PathVariable("target_id") String defenderId) throws NotFoundException {
-        kingdomService.attack(attackerId, defenderId);
-        return ResponseEntity.ok().build();
+        Kingdom attacker = kingdomService.attack(attackerId, defenderId);
+        return ResponseEntity.ok(attacker);
     }
 
     // DTO para la inversión

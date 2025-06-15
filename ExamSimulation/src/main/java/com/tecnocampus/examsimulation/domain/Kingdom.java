@@ -4,13 +4,15 @@ import com.tecnocampus.examsimulation.application.DTO.KingdomDTO;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.springframework.data.relational.core.mapping.Column;
 
 public class Kingdom {
     private String id = UUID.randomUUID().toString();
     private int food;
     private int citizens;
     private int gold;
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column("created_at")
+    private LocalDateTime dateOfCreation = LocalDateTime.now();
 
     public Kingdom() {
     }
@@ -41,7 +43,7 @@ public class Kingdom {
     public void setGold(int gold) {
         this.gold = gold;
     }
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getDateOfCreation() {
+        return dateOfCreation;
     }
 }
